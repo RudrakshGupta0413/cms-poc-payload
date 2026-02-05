@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { Editable } from '@/components/Editable'
+import type { Media } from '@/payload-types'
 
 const ADMIN_ORIGIN = process.env.NEXT_PUBLIC_PAYLOAD_ADMIN_ORIGIN ?? 'http://localhost:3000'
 
@@ -22,7 +24,7 @@ type WhySectionData = {
   title?: string | null
   heading?: string | null
   description?: string | null
-  image?: any
+  image?: (number | Media) | null
 }
 
 type HomePageBlock = {
@@ -86,7 +88,6 @@ const sectionStyles = {
 }
 
 // Listens for Payload's live preview postMessage and re-renders with the latest document.
-
 
 export function LivePreviewLanding({ initialPage }: { initialPage: LandingPageData }) {
   const [data, setData] = useState<LandingPageData>(initialPage)
@@ -395,18 +396,21 @@ export function LivePreviewLanding({ initialPage }: { initialPage: LandingPageDa
                             borderRadius: '20px',
                             overflow: 'hidden',
                             boxShadow: '0 40px 80px rgba(0,0,0,0.25)',
-                            background: !why.image?.url
+                            background: !(
+                              why.image &&
+                              typeof why.image === 'object' &&
+                              why.image.url
+                            )
                               ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
                               : undefined,
                           }}
                         >
-                          {why.image?.url && (
-                            <img
+                          {why.image && typeof why.image === 'object' && why.image.url && (
+                            <Image
                               src={why.image.url}
                               alt={why.image.alt || 'Why section image'}
+                              fill
                               style={{
-                                width: '100%',
-                                height: '100%',
                                 objectFit: 'cover',
                               }}
                             />

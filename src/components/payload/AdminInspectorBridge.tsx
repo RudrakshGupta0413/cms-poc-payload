@@ -26,7 +26,10 @@ const STORAGE_KEY = 'payload:pending-focus'
 function getAdminOrigin(): string {
   // safest: hardcode/configure expected origin
   // e.g. process.env.NEXT_PUBLIC_PAYLOAD_ADMIN_ORIGIN in the admin build
-  return (window as any).__PAYLOAD_ADMIN_ORIGIN__ || window.location.origin
+  return (
+    (window as typeof window & { __PAYLOAD_ADMIN_ORIGIN__?: string }).__PAYLOAD_ADMIN_ORIGIN__ ||
+    window.location.origin
+  )
 }
 
 function currentEditContext() {

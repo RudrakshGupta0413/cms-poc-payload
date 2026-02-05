@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Editable } from '@/components/Editable'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import type { SerializedEditorState } from 'lexical'
 import type { Post } from '@/payload-types'
 
 const ADMIN_ORIGIN = process.env.NEXT_PUBLIC_PAYLOAD_ADMIN_ORIGIN ?? 'http://localhost:3000'
@@ -56,7 +57,7 @@ export function LivePreviewPost({ initialPost }: { initialPost: Post }) {
         )}
 
         <div style={{ marginTop: '20px' }}>
-          <RichText data={post.content as any} />
+          <RichText data={post.content as SerializedEditorState} />
         </div>
       </article>
     )
@@ -91,7 +92,7 @@ export function LivePreviewPost({ initialPost }: { initialPost: Post }) {
           fieldPath="content"
           adminOrigin={ADMIN_ORIGIN}
         >
-          <RichText data={post.content as any} />
+          <RichText data={post.content as SerializedEditorState} />
         </Editable>
       </div>
     </article>

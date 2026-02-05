@@ -8,6 +8,7 @@ interface PostProps {
   }>
 }
 
+import { Post as PostType } from '@/payload-types'
 import { LivePreviewPost } from '@/components/LivePreviewPost'
 
 export default async function Post({ params }: PostProps) {
@@ -29,7 +30,7 @@ export default async function Post({ params }: PostProps) {
     return notFound()
   }
 
-  return <LivePreviewPost initialPost={post as any} />
+  return <LivePreviewPost initialPost={post as PostType} />
 }
 
 export async function generateStaticParams() {

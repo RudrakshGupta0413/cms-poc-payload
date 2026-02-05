@@ -2,6 +2,7 @@ import { LivePreviewLanding } from '@/components/LivePreviewLanding'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { notFound } from 'next/navigation'
+import { Page as PageType } from '@/payload-types'
 
 interface PageProps {
   params: Promise<{
@@ -28,10 +29,9 @@ export default async function Page({ params }: PageProps) {
     return notFound()
   }
 
-  const initialPage = {
-    id: page.id,
-    title: page.title,
-    layout: (page.layout ?? []) as any,
+  const initialPage: PageType = {
+    ...page,
+    layout: page.layout ?? [],
   }
 
   return <LivePreviewLanding initialPage={initialPage} />
