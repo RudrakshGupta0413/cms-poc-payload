@@ -14,6 +14,14 @@ import { Header } from './globals/Header'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+if (!process.env.PAYLOAD_SECRET) {
+  throw new Error('PAYLOAD_SECRET is missing. Please set it in your environment variables.')
+}
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is missing. Please set it in your environment variables.')
+}
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -24,27 +32,28 @@ export default buildConfig({
       // Enable Live Preview for these collections (required for the eye icon / panel to show)
       collections: ['pages', 'posts'],
       url: ({ data, collectionConfig }) => {
+        const origin = process.env.NEXT_PUBLIC_PAYLOAD_ADMIN_ORIGIN || 'http://localhost:3000'
         if (collectionConfig?.slug === 'pages') {
-          return `http://localhost:3000/${data?.slug}?livePreview=true`
+          return `${origin}/${data?.slug}?livePreview=true`
         }
         if (collectionConfig?.slug === 'posts') {
-          return `http://localhost:3000/posts/${data?.slug}?livePreview=true`
+          return `${origin}/posts/${data?.slug}?livePreview=true`
         }
 
-        return `http://localhost:3000/?livePreview=true`
+        return `${origin}/?livePreview=true`
       },
     },
   },
   editor: lexicalEditor({}),
   collections: [Users, Media, Pages, Posts],
   globals: [Header],
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || '',
+      connectionString: process.env.DATABASE_URL,
     },
   }),
   sharp,
