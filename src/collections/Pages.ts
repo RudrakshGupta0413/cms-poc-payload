@@ -4,8 +4,7 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   admin: {
     useAsTitle: 'title',
-    description:
-      'Create and manage website pages. Each page has its own URL based on its slug.',
+    description: 'Create and manage website pages. Each page has its own URL based on its slug.',
     components: {
       edit: {
         beforeDocumentControls: ['/components/payload/AdminInspectorBridge'],
@@ -31,8 +30,7 @@ export const Pages: CollectionConfig = {
       name: 'layout',
       type: 'blocks',
       admin: {
-        description:
-          'Build the page using predefined full-page layouts.',
+        description: 'Build the page using predefined full-page layouts.',
       },
       blocks: [
         // 🏠 Home Page Layout
