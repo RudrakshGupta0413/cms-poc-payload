@@ -13,6 +13,16 @@ export const Pages: CollectionConfig = {
   },
   fields: [
     {
+      name: 'site',
+      type: 'relationship',
+      relationTo: 'sites',
+      required: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Select the project this page belongs to.',
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,
@@ -33,7 +43,7 @@ export const Pages: CollectionConfig = {
         description: 'Build the page using predefined full-page layouts.',
       },
       blocks: [
-        // 🏠 Home Page Layout
+        // Home Page Layout
         {
           slug: 'homePage',
           labels: { singular: 'Home Page', plural: 'Home Pages' },
@@ -74,7 +84,7 @@ export const Pages: CollectionConfig = {
           ],
         },
 
-        // 📄 About Page Layout
+        // About Page Layout
         {
           slug: 'aboutPage',
           labels: { singular: 'About Page', plural: 'About Pages' },
@@ -85,7 +95,7 @@ export const Pages: CollectionConfig = {
           ],
         },
 
-        // 🛠 Services Page Layout
+        // Services Page Layout
         {
           slug: 'servicesPage',
           labels: { singular: 'Services Page', plural: 'Services Pages' },
@@ -103,7 +113,7 @@ export const Pages: CollectionConfig = {
           ],
         },
 
-        // 📬 Contact Page Layout
+        // Contact Page Layout
         {
           slug: 'contactPage',
           labels: { singular: 'Contact Page', plural: 'Contact Pages' },

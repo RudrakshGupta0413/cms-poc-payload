@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     pages: Page;
     posts: Post;
+    sites: Site;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    sites: SitesSelect<false> | SitesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -93,9 +95,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     header: Header;
+    'design-system': DesignSystem;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
+    'design-system': DesignSystemSelect<false> | DesignSystemSelect<true>;
   };
   locale: null;
   user: User & {
@@ -175,6 +179,10 @@ export interface Media {
  */
 export interface Page {
   id: number;
+  /**
+   * Select the project this page belongs to.
+   */
+  site?: (number | null) | Site;
   title: string;
   /**
    * This becomes the URL. Example: "about" → yoursite.com/about
@@ -239,6 +247,23 @@ export interface Page {
           }
       )[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage different projects or sites (e.g., Mistrut, Synergy).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites".
+ */
+export interface Site {
+  id: number;
+  name: string;
+  /**
+   * The domain where this site is hosted (e.g., mistrut.com).
+   */
+  domain?: string | null;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -312,6 +337,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'sites';
+        value: number | Site;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -400,6 +429,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  site?: T;
   title?: T;
   slug?: T;
   layout?:
@@ -486,6 +516,17 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites_select".
+ */
+export interface SitesSelect<T extends boolean = true> {
+  name?: T;
+  domain?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -547,6 +588,30 @@ export interface Header {
   createdAt?: string | null;
 }
 /**
+ * Manage global design tokens and themes for all sites.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "design-system".
+ */
+export interface DesignSystem {
+  id: number;
+  themes: {
+    site: number | Site;
+    colors?: {
+      primary?: string | null;
+      secondary?: string | null;
+      accent?: string | null;
+    };
+    typography?: {
+      fontFamily?: string | null;
+      baseFontSize?: string | null;
+    };
+    id?: string | null;
+  }[];
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -563,6 +628,34 @@ export interface HeaderSelect<T extends boolean = true> {
               page?: T;
               post?: T;
               url?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "design-system_select".
+ */
+export interface DesignSystemSelect<T extends boolean = true> {
+  themes?:
+    | T
+    | {
+        site?: T;
+        colors?:
+          | T
+          | {
+              primary?: T;
+              secondary?: T;
+              accent?: T;
+            };
+        typography?:
+          | T
+          | {
+              fontFamily?: T;
+              baseFontSize?: T;
             };
         id?: T;
       };
