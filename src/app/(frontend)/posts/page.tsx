@@ -1,9 +1,17 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { BlogCard } from '@/components/BlogCard'
+import { notFound } from 'next/navigation'
 
 export default async function BlogListing() {
   const payload = await getPayload({ config })
+  const availableSlugs = payload.config.collections.map((c) => c.slug)
+
+  // Only render if this tenant has the posts collection
+  if (!availableSlugs.includes('posts')) {
+    return notFound()
+  }
+
   const posts = await payload.find({
     collection: 'posts',
     sort: '-publishedAt',

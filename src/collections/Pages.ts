@@ -2,6 +2,12 @@ import type { CollectionConfig } from 'payload'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  access: {
+    read: () => true,
+    create: () => true,
+    update: () => true,
+    delete: () => true,
+  },
   admin: {
     useAsTitle: 'title',
     description: 'Create and manage website pages. Each page has its own URL based on its slug.',
@@ -12,16 +18,6 @@ export const Pages: CollectionConfig = {
     },
   },
   fields: [
-    {
-      name: 'site',
-      type: 'relationship',
-      relationTo: 'sites',
-      required: false,
-      admin: {
-        position: 'sidebar',
-        description: 'Select the project this page belongs to.',
-      },
-    },
     {
       name: 'title',
       type: 'text',

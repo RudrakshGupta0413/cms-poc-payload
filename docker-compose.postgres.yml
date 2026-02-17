@@ -1,0 +1,56 @@
+# Local PostgreSQL setup for multi-tenant Payload CMS
+# This provides a single PostgreSQL server that hosts multiple isolated databases
+
+services:
+  # PostgreSQL Server
+  # Hosts all tenant databases in one instance (cost-effective for local development)
+  postgres:
+    image: postgres:16-alpine
+    container_name: payload-postgres
+    environment:
+      POSTGRES_USER: payload
+      POSTGRES_PASSWORD: payload
+      POSTGRES_DB: postgres # Default database
+    ports:
+      - "5433:5432"  # Changed to 5433 to avoid conflict with existing PostgreSQL
+    volumes:
+      # Persist data across container restarts
+      - postgres_data:/var/lib/postgresql/data
+      # Initialize tenant databases
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U payload']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - payload-network
+
+  # pgAdmin (Optional - Web UI for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: payload-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@payload.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - payload-network
+    profiles:
+      - tools # Only start when explicitly requested: docker-compose --profile tools up
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  payload-network:
+    driver: bridge

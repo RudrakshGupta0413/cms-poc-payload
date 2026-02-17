@@ -13,6 +13,12 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { slug } = await params
   const payload = await getPayload({ config })
+  const availableSlugs = payload.config.collections.map((c) => c.slug)
+
+  // Only query pages if the collection exists for this tenant
+  if (!availableSlugs.includes('pages')) {
+    return notFound()
+  }
 
   const result = await payload.find({
     collection: 'pages',
@@ -39,6 +45,13 @@ export default async function Page({ params }: PageProps) {
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config })
+  const availableSlugs = payload.config.collections.map((c) => c.slug)
+
+  // If this tenant doesn't have pages, return empty params
+  if (!availableSlugs.includes('pages')) {
+    return []
+  }
+
   const pages = await payload.find({
     collection: 'pages',
     limit: 1000,

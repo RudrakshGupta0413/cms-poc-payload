@@ -14,6 +14,12 @@ import { LivePreviewPost } from '@/components/LivePreviewPost'
 export default async function Post({ params }: PostProps) {
   const { slug } = await params
   const payload = await getPayload({ config })
+  const availableSlugs = payload.config.collections.map((c) => c.slug)
+
+  // Only render if this tenant has the posts collection
+  if (!availableSlugs.includes('posts')) {
+    return notFound()
+  }
 
   const result = await payload.find({
     collection: 'posts',
@@ -35,6 +41,13 @@ export default async function Post({ params }: PostProps) {
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config })
+  const availableSlugs = payload.config.collections.map((c) => c.slug)
+
+  // If this tenant doesn't have posts, return empty params
+  if (!availableSlugs.includes('posts')) {
+    return []
+  }
+
   const posts = await payload.find({
     collection: 'posts',
     limit: 1000,

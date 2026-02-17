@@ -69,9 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
-    pages: Page;
     posts: Post;
-    sites: Site;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -81,9 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
-    sites: SitesSelect<false> | SitesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -172,102 +168,6 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Create and manage website pages. Each page has its own URL based on its slug.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
- */
-export interface Page {
-  id: number;
-  /**
-   * Select the project this page belongs to.
-   */
-  site?: (number | null) | Site;
-  title: string;
-  /**
-   * This becomes the URL. Example: "about" → yoursite.com/about
-   */
-  slug: string;
-  /**
-   * Build the page using predefined full-page layouts.
-   */
-  layout?:
-    | (
-        | {
-            hero: {
-              heading: string;
-              subheading?: string | null;
-              ctaText?: string | null;
-              ctaLink?: string | null;
-            };
-            about?: {
-              title?: string | null;
-              description?: string | null;
-              highlightText?: string | null;
-            };
-            why?: {
-              title?: string | null;
-              heading?: string | null;
-              description?: string | null;
-              image?: (number | null) | Media;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'homePage';
-          }
-        | {
-            title?: string | null;
-            description?: string | null;
-            highlightText?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'aboutPage';
-          }
-        | {
-            sectionTitle?: string | null;
-            servicesList?:
-              | {
-                  title?: string | null;
-                  description?: string | null;
-                  icon?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'servicesPage';
-          }
-        | {
-            email?: string | null;
-            phone?: string | null;
-            address?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'contactPage';
-          }
-      )[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Manage different projects or sites (e.g., Mistrut, Synergy).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sites".
- */
-export interface Site {
-  id: number;
-  name: string;
-  /**
-   * The domain where this site is hosted (e.g., mistrut.com).
-   */
-  domain?: string | null;
-  description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
@@ -331,16 +231,8 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'pages';
-        value: number | Page;
-      } | null)
-    | ({
         relationTo: 'posts';
         value: number | Post;
-      } | null)
-    | ({
-        relationTo: 'sites';
-        value: number | Site;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -426,83 +318,6 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
- */
-export interface PagesSelect<T extends boolean = true> {
-  site?: T;
-  title?: T;
-  slug?: T;
-  layout?:
-    | T
-    | {
-        homePage?:
-          | T
-          | {
-              hero?:
-                | T
-                | {
-                    heading?: T;
-                    subheading?: T;
-                    ctaText?: T;
-                    ctaLink?: T;
-                  };
-              about?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    highlightText?: T;
-                  };
-              why?:
-                | T
-                | {
-                    title?: T;
-                    heading?: T;
-                    description?: T;
-                    image?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        aboutPage?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              highlightText?: T;
-              id?: T;
-              blockName?: T;
-            };
-        servicesPage?:
-          | T
-          | {
-              sectionTitle?: T;
-              servicesList?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    icon?: T;
-                    id?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contactPage?:
-          | T
-          | {
-              email?: T;
-              phone?: T;
-              address?: T;
-              id?: T;
-              blockName?: T;
-            };
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -511,17 +326,6 @@ export interface PostsSelect<T extends boolean = true> {
   content?: T;
   publishedAt?: T;
   featuredImage?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sites_select".
- */
-export interface SitesSelect<T extends boolean = true> {
-  name?: T;
-  domain?: T;
-  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -576,8 +380,7 @@ export interface Header {
     | {
         link: {
           label: string;
-          type?: ('page' | 'post' | 'blogList' | 'custom') | null;
-          page?: (number | null) | Page;
+          type?: ('post' | 'blogList' | 'custom') | null;
           post?: (number | null) | Post;
           url?: string | null;
         };
@@ -588,26 +391,37 @@ export interface Header {
   createdAt?: string | null;
 }
 /**
- * Manage global design tokens and themes for all sites.
+ * Manage design tokens and theme for this site.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "design-system".
  */
 export interface DesignSystem {
   id: number;
-  themes: {
-    site: number | Site;
-    colors?: {
-      primary?: string | null;
-      secondary?: string | null;
-      accent?: string | null;
-    };
-    typography?: {
-      fontFamily?: string | null;
-      baseFontSize?: string | null;
-    };
-    id?: string | null;
-  }[];
+  colors?: {
+    /**
+     * Primary brand color (hex code)
+     */
+    primary?: string | null;
+    /**
+     * Secondary brand color (hex code)
+     */
+    secondary?: string | null;
+    /**
+     * Accent color for CTA buttons and highlights (hex code)
+     */
+    accent?: string | null;
+  };
+  typography?: {
+    /**
+     * Font family for body text
+     */
+    fontFamily?: string | null;
+    /**
+     * Base font size
+     */
+    baseFontSize?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -625,7 +439,6 @@ export interface HeaderSelect<T extends boolean = true> {
           | {
               label?: T;
               type?: T;
-              page?: T;
               post?: T;
               url?: T;
             };
@@ -640,24 +453,18 @@ export interface HeaderSelect<T extends boolean = true> {
  * via the `definition` "design-system_select".
  */
 export interface DesignSystemSelect<T extends boolean = true> {
-  themes?:
+  colors?:
     | T
     | {
-        site?: T;
-        colors?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-              accent?: T;
-            };
-        typography?:
-          | T
-          | {
-              fontFamily?: T;
-              baseFontSize?: T;
-            };
-        id?: T;
+        primary?: T;
+        secondary?: T;
+        accent?: T;
+      };
+  typography?:
+    | T
+    | {
+        fontFamily?: T;
+        baseFontSize?: T;
       };
   updatedAt?: T;
   createdAt?: T;

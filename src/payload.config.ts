@@ -2,81 +2,127 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
+import type { Config, CollectionConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
-import { Sites } from './collections/Sites'
 import { Header } from './globals/Header'
 import { DesignSystem } from './globals/DesignSystem'
+import type { TenantConfig } from './tenants.config'
+import { getCurrentTenant } from './tenants.config'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-if (!process.env.PAYLOAD_SECRET) {
-  throw new Error('PAYLOAD_SECRET is missing. Please set it in your environment variables.')
-}
+export function createPayloadConfig(tenant: TenantConfig): Config {
+  if (!tenant.payloadSecret) {
+    throw new Error(`PAYLOAD_SECRET is missing for tenant: ${tenant.id}`)
+  }
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is missing. Please set it in your environment variables.')
-}
+  if (!tenant.databaseUrl) {
+    throw new Error(`DATABASE_URL is missing for tenant: ${tenant.id}`)
+  }
 
-export default buildConfig({
-  admin: {
-    user: Users.slug,
-    importMap: {
-      baseDir: path.resolve(dirname),
-    },
-    livePreview: {
-      // Enable Live Preview for these collections (required for the eye icon / panel to show)
-      collections: ['pages', 'posts'],
-      url: ({ data, collectionConfig }) => {
-        const origin = process.env.NEXT_PUBLIC_PAYLOAD_ADMIN_ORIGIN || 'http://localhost:3000'
-        if (collectionConfig?.slug === 'pages') {
-          return `${origin}/${data?.slug}?livePreview=true`
-        }
-        if (collectionConfig?.slug === 'posts') {
-          return `${origin}/posts/${data?.slug}?livePreview=true`
-        }
+  const enabledCollections = tenant.customConfig?.collections || ['users', 'media', 'pages', 'posts']
 
-        return `${origin}/?livePreview=true`
+  // When running `payload generate:importmap`, load ALL collections so the
+  // shared importMap file gets entries for every component (Lexical richText, etc.).
+  // At runtime, only the tenant's own collections are loaded.
+  const isGeneratingImportMap = process.argv.some(arg => arg === 'generate:importmap')
+
+  let collections: CollectionConfig[]
+  if (isGeneratingImportMap) {
+    collections = [Users, Media, Pages, Posts]
+    console.log(`[importMap mode] Loading ALL collections: users, media, pages, posts`)
+  } else {
+    collections = [Users]
+    if (enabledCollections.includes('media')) collections.push(Media)
+    if (enabledCollections.includes('pages')) collections.push(Pages)
+    if (enabledCollections.includes('posts')) collections.push(Posts)
+    console.log(`Loaded collections for ${tenant.name}:`, collections.map(c => c.slug).join(', '))
+  }
+
+  const config = buildConfig({
+    serverURL: process.env.NEXT_PUBLIC_SERVER_URL || `http://localhost:${process.env.PORT || 3000}`,
+    admin: {
+      user: Users.slug,
+      importMap: {
+        baseDir: path.resolve(dirname),
       },
-      breakpoints: [
-        {
-          label: 'Mobile',
-          name: 'mobile',
-          width: 375,
-          height: 667,
+      meta: {
+        titleSuffix: ` - ${tenant.name}`,
+        // favicon: `/favicons/${tenant.id}.ico`, // Not supported in MetaConfig
+      },
+      livePreview: {
+        // Enable Live Preview only for collections this tenant actually has
+        collections: ['pages', 'posts'].filter(c => enabledCollections.includes(c)),
+        url: ({ data, collectionConfig }) => {
+          const origin = process.env.NEXT_PUBLIC_SERVER_URL || `http://localhost:${process.env.PORT || 3000}`
+          if (collectionConfig?.slug === 'pages') {
+            return `${origin}/${data?.slug}?livePreview=true`
+          }
+          if (collectionConfig?.slug === 'posts') {
+            return `${origin}/posts/${data?.slug}?livePreview=true`
+          }
+
+          return `${origin}/?livePreview=true`
         },
-        {
-          label: 'Tablet',
-          name: 'tablet',
-          width: 768,
-          height: 1024,
-        },
-        {
-          label: 'Desktop',
-          name: 'desktop',
-          width: 1440,
-          height: 900,
-        },
-      ],
+        breakpoints: [
+          {
+            label: 'Mobile',
+            name: 'mobile',
+            width: 375,
+            height: 667,
+          },
+          {
+            label: 'Tablet',
+            name: 'tablet',
+            width: 768,
+            height: 1024,
+          },
+          {
+            label: 'Desktop',
+            name: 'desktop',
+            width: 1440,
+            height: 900,
+          },
+        ],
+      },
     },
-  },
-  editor: lexicalEditor({}),
-  collections: [Users, Media, Pages, Posts, Sites],
-  globals: [Header, DesignSystem],
-  secret: process.env.PAYLOAD_SECRET,
-  typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
-  },
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL,
+    editor: lexicalEditor({}),
+
+    // Use conditionally built collections
+    collections,
+
+    globals: [Header, DesignSystem],
+    secret: tenant.payloadSecret,
+    typescript: {
+      outputFile: path.resolve(dirname, 'payload-types.ts'),
     },
-  }),
-  sharp,
-  plugins: [],
-})
+    db: postgresAdapter({
+      pool: {
+        connectionString: tenant.databaseUrl,
+      },
+    }),
+    sharp,
+    plugins: [],
+  })
+
+  return config
+}
+
+/**
+ * Default export for compatibility with existing code
+ * Uses the current tenant from TENANT_ID environment variable
+ */
+const tenant = getCurrentTenant()
+console.log(`🚀 Initializing Payload for tenant: ${tenant.name} (${tenant.id})`)
+console.log(`📊 Database: ${tenant.databaseUrl.replace(/:[^:@]+@/, ':***@')}`)
+console.log(`🌐 Domain: ${tenant.domain}`)
+console.log(`⚙️  Admin: ${tenant.adminDomain}`)
+
+export default createPayloadConfig(tenant)
+

@@ -2,7 +2,9 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your Next.js config here
+  // Isolate build directory per tenant to prevent conflicts in multi-instance dev
+  distDir: process.env.TENANT_ID ? `.next/${process.env.TENANT_ID}` : '.next',
+
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],

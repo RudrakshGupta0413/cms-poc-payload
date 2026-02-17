@@ -1,4 +1,8 @@
 import type { GlobalConfig } from 'payload'
+import { getCurrentTenant } from '../tenants.config'
+
+const tenant = getCurrentTenant()
+const enabledCollections = tenant.customConfig?.collections || ['users', 'media', 'pages', 'posts']
 
 export const Header: GlobalConfig = {
   slug: 'header',
@@ -28,31 +32,31 @@ export const Header: GlobalConfig = {
               name: 'type',
               type: 'radio',
               options: [
-                { label: 'Page', value: 'page' },
-                { label: 'Blog Post', value: 'post' },
-                { label: 'Blog Listing', value: 'blogList' },
+                ...(enabledCollections.includes('pages') ? [{ label: 'Page', value: 'page' }] : []),
+                ...(enabledCollections.includes('posts') ? [
+                  { label: 'Blog Post', value: 'post' },
+                  { label: 'Blog Listing', value: 'blogList' },
+                ] : []),
                 { label: 'Custom URL', value: 'custom' },
               ],
-              defaultValue: 'page',
+              defaultValue: enabledCollections.includes('pages') ? 'page' : 'custom',
             },
-            {
+            ...(enabledCollections.includes('pages') ? [{
               name: 'page',
-              type: 'relationship',
-              relationTo: 'pages',
-              required: true,
+              type: 'relationship' as const,
+              relationTo: 'pages' as const,
               admin: {
-                condition: (_, siblingData) => siblingData?.type === 'page',
+                condition: (_: any, siblingData: any) => siblingData?.type === 'page',
               },
-            },
-            {
+            }] : []),
+            ...(enabledCollections.includes('posts') ? [{
               name: 'post',
-              type: 'relationship',
-              relationTo: 'posts',
-              required: true,
+              type: 'relationship' as const,
+              relationTo: 'posts' as const,
               admin: {
-                condition: (_, siblingData) => siblingData?.type === 'post',
+                condition: (_: any, siblingData: any) => siblingData?.type === 'post',
               },
-            },
+            }] : []),
             {
               name: 'url',
               type: 'text',
